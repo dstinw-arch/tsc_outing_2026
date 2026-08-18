@@ -323,6 +323,7 @@
   .r-sect{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--teal);text-transform:uppercase;
     margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   .r-no{background:#fff;border:1px dashed var(--mist);border-radius:14px;padding:24px;text-align:center;color:var(--charcoal)}
+  .r-no .r-sub{font-size:13px;color:var(--slate)}
   .r-editbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);
     border-radius:12px;padding:12px 14px;margin-bottom:14px}
   .r-editbar .st{font-family:var(--mono);font-size:12px;color:var(--slate);margin-right:auto}
@@ -336,9 +337,20 @@
   .r-del:hover{border-color:var(--teal);color:var(--teal)}
   .r-out{width:100%;font-family:var(--mono);font-size:11px;border:1px solid var(--mist);border-radius:8px;
     padding:10px;margin-top:12px;height:120px;resize:vertical}
-  @media (max-width:640px){
-    .r-tablewrap{max-height:none}
-    #roster td,#roster th{white-space:normal}
+  @media (max-width:700px){
+    .r-tablewrap{max-height:none;border:none;background:transparent}
+    #roster thead{display:none}
+    #roster table,#roster tbody,#roster tr,#roster td{display:block;width:100%}
+    #roster tr{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 6px;margin-bottom:11px}
+    #roster tbody tr:hover td{background:transparent}
+    #roster td{border:none;padding:4px 11px;display:flex;gap:10px;align-items:baseline;white-space:normal}
+    #roster td::before{content:attr(data-label);font-family:var(--mono);font-size:11px;color:var(--slate);
+      flex:0 0 68px;letter-spacing:.04em}
+    #roster td.nm{font-family:var(--serif);font-size:20px;font-weight:600;padding:0 11px 6px}
+    #roster td.nm::before{content:none}
+    #roster td.idx{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+    #roster td input.r-in,#roster td select.r-in{width:auto;flex:1 1 auto}
+    .r-editbar{position:sticky;top:0;z-index:5}
   }
   @media print{
     header,.cost,main,footer,#roster-gate,.admin-banner,.r-tools,.r-chips,.r-tabs{display:none!important}
@@ -720,17 +732,17 @@
       <thead><tr><th>序號</th><th>姓名</th><th>報名同仁</th><th>車號</th><th>房號</th><th>床型</th>
       <th>上車地點</th><th>福哥</th><th>海濤</th><th>梅花湖</th><th>羅東林業</th></tr></thead>
       <tbody>${rows.map(p => `<tr>
-        <td>${p.n}</td>
+        <td class="idx" data-label="序號">${p.n}</td>
         <td class="nm">${esc(p.name)}</td>
-        <td>${esc(p.e)}</td>
-        <td>${esc(p.bus)}</td>
-        <td>${esc(p.room)}</td>
-        <td>${esc(bedTxt(p.bed))}</td>
-        <td>${esc(SPOT[p.spot].n)} <span class="r-tag">${SPOT[p.spot].t}</span></td>
-        <td>${esc(p.f)}</td>
-        <td>${p.h === '烏' ? `<span class="r-tag on">${WU}</span>` : esc(p.h)}</td>
-        <td><span class="r-tag ${p.m === 'N' ? 'off' : 'on'}">${MEI[p.m]}</span></td>
-        <td><span class="r-tag ${p.l === 'Y' ? 'on' : 'off'}">${p.l === 'Y' ? '去' : '不去'}</span></td>
+        <td data-label="同仁">${esc(p.e)}</td>
+        <td data-label="車號">${esc(p.bus)}</td>
+        <td data-label="房號">${esc(p.room)}</td>
+        <td data-label="床型">${esc(bedTxt(p.bed))}</td>
+        <td data-label="上車">${esc(SPOT[p.spot].n)} <span class="r-tag">${SPOT[p.spot].t}</span></td>
+        <td data-label="福哥">${esc(p.f)}</td>
+        <td data-label="海濤">${p.h === '烏' ? `<span class="r-tag on">${WU}</span>` : esc(p.h)}</td>
+        <td data-label="梅花湖"><span class="r-tag ${p.m === 'N' ? 'off' : 'on'}">${MEI[p.m]}</span></td>
+        <td data-label="羅東林業"><span class="r-tag ${p.l === 'Y' ? 'on' : 'off'}">${p.l === 'Y' ? '去' : '不去'}</span></td>
       </tr>`).join('')}</tbody></table></div>`;
   }
   function rGroups(rows, keyFn, sortFn, title, sub){
@@ -776,9 +788,21 @@
       <div class="r-sect">海饕特殊安排</div><div class="r-groups">
         ${list(WU, rows.filter(p => p.h === '烏'))}</div>`;
   }
+  function rActive(){
+    return document.getElementById('r-q').value.trim() !== '' ||
+           RF.bus.size > 0 || RF.spot.size > 0 || RF.act.size > 0;
+  }
   function rRender(){
     const rows = rFiltered();
-    document.getElementById('r-count').textContent = `符合條件 ${rows.length} 人／全團 ${D.length} 人`;
+    const idle = !rActive() && (rTab === 'list' || rTab === 'edit');
+    document.getElementById('r-count').textContent = idle
+      ? `全團 ${D.length} 人 · 待篩選`
+      : `符合條件 ${rows.length} 人／全團 ${D.length} 人`;
+    if(idle){
+      const hint = '<div class="r-no">打姓名或房號，或按上面的車號、上車地點、活動，結果才會列出來。<br><span class="r-sub">要看整團分組，切到「車輛」「房間」「餐桌」分頁。</span></div>';
+      document.getElementById('r-view').innerHTML = rTab === 'edit' ? rEditBar() + hint : hint;
+      return;
+    }
     document.getElementById('r-view').innerHTML = rows.length === 0
       ? '<div class="r-no">沒有符合的資料。放寬搜尋字或按「清除條件」重來。</div>'
       : rTab === 'list' ? rTable(rows)
@@ -848,26 +872,29 @@
   const sel = (k, cur, items) =>
     `<select class="r-in" data-k="${k}">${items.map(i => Array.isArray(i) ? opt(i[0], cur, i[1]) : opt(i, cur)).join('')}</select>`;
 
-  function rEditView(rows){
-    const bar = `<div class="r-editbar">
+  function rEditBar(){
+    return `<div class="r-editbar">
       <span class="st ${rDirty ? 'dirty' : ''}" id="r-dirty">${rDirty ? '未存檔的變更 ' + rDirty + ' 處' : '目前與線上檔案一致'}</span>
       <button class="r-btn ghost" id="r-add">新增一列</button>
       <button class="r-btn ghost" id="r-revert">還原</button>
       <button class="r-btn" id="r-save">產生新檔</button>
     </div>`;
+  }
+  function rEditView(rows){
+    const bar = rEditBar();
     const body = rows.map(p => `<tr data-n="${p.n}">
-      <td>${p.n}</td>
-      <td><input class="r-in" data-k="name" value="${esc(p.name)}"></td>
-      <td><input class="r-in" data-k="e" value="${esc(p.e)}"></td>
-      <td>${sel('bus', p.bus, busOrder)}</td>
-      <td><input class="r-in" data-k="room" value="${esc(p.room)}"></td>
-      <td>${sel('bed', p.bed, BEDS.map(b => [b, bedTxt(b)]))}</td>
-      <td class="wide">${sel('spot', p.spot, Object.keys(SPOT).map(k => [k, SPOT[k].n]))}</td>
-      <td>${sel('f', p.f, TABLES)}</td>
-      <td>${sel('h', p.h, TABLES.concat([['烏', WU]]))}</td>
-      <td>${sel('m', p.m, [['船','搭船'],['車','騎腳踏車'],['N','不參加']])}</td>
-      <td>${sel('l', p.l, [['Y','去'],['N','不去']])}</td>
-      <td><button class="r-del">刪除</button></td>
+      <td class="idx" data-label="序號">${p.n}</td>
+      <td data-label="姓名"><input class="r-in" data-k="name" value="${esc(p.name)}"></td>
+      <td data-label="同仁"><input class="r-in" data-k="e" value="${esc(p.e)}"></td>
+      <td data-label="車號">${sel('bus', p.bus, busOrder)}</td>
+      <td data-label="房號"><input class="r-in" data-k="room" value="${esc(p.room)}"></td>
+      <td data-label="床型">${sel('bed', p.bed, BEDS.map(b => [b, bedTxt(b)]))}</td>
+      <td class="wide" data-label="上車">${sel('spot', p.spot, Object.keys(SPOT).map(k => [k, SPOT[k].n]))}</td>
+      <td data-label="福哥">${sel('f', p.f, TABLES)}</td>
+      <td data-label="海濤">${sel('h', p.h, TABLES.concat([['烏', WU]]))}</td>
+      <td data-label="梅花湖">${sel('m', p.m, [['船','搭船'],['車','騎腳踏車'],['N','不參加']])}</td>
+      <td data-label="羅東林業">${sel('l', p.l, [['Y','去'],['N','不去']])}</td>
+      <td data-label=""><button class="r-del">刪除</button></td>
     </tr>`).join('');
     return bar + `<div class="r-tablewrap"><table>
       <thead><tr><th>序號</th><th>姓名</th><th>報名同仁</th><th>車號</th><th>房號</th><th>床型</th>
@@ -905,6 +932,7 @@
       if(e.target.id === 'r-add'){
         const n = D.reduce((m,p) => Math.max(m, +p.n), 0) + 1;
         D.push({n:n, e:'', name:'新增人員', bus:'甲', room:'', bed:BEDS[1], spot:'p1', f:'1', h:'1', m:'N', l:'N'});
+        document.getElementById('r-q').value = '新增人員';
         rMark(); rRender();
         return;
       }
