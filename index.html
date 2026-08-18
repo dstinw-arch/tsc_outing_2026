@@ -579,7 +579,9 @@
     </div>
     <div class="r-chips" id="r-fbus"></div>
     <div class="r-chips" id="r-fspot"></div>
-    <div class="r-chips" id="r-fact"></div>
+    <div class="r-chips" id="r-fmei"></div>
+    <div class="r-chips" id="r-flu"></div>
+    <div class="r-chips" id="r-fhai"></div>
     <div class="r-tabs" id="r-tabs"></div>
     <div class="r-count" id="r-count"></div>
     <div id="r-view"></div>
@@ -697,7 +699,7 @@
   }
 
   let rTab = 'list';
-  const RF = { bus:new Set(), spot:new Set(), act:new Set() };
+  const RF = { bus:new Set(), spot:new Set(), mei:new Set(), lu:new Set(), hai:new Set() };
 
   function rChips(el, label, items, key){
     el.innerHTML = '<span class="r-chiplabel">' + label + '</span>' +
@@ -714,15 +716,9 @@
     return D.filter(p => {
       if(RF.bus.size && !RF.bus.has(p.bus)) return false;
       if(RF.spot.size && !RF.spot.has(p.spot)) return false;
-      if(RF.act.size){
-        let ok = false;
-        if(RF.act.has('boat') && p.m === '船') ok = true;
-        if(RF.act.has('bike') && p.m === '車') ok = true;
-        if(RF.act.has('none') && p.m === 'N') ok = true;
-        if(RF.act.has('luodong') && p.l === 'Y') ok = true;
-        if(RF.act.has('wu') && p.h === '烏') ok = true;
-        if(!ok) return false;
-      }
+      if(RF.mei.size && !RF.mei.has(p.m)) return false;
+      if(RF.lu.size && !RF.lu.has(p.l)) return false;
+      if(RF.hai.size && !RF.hai.has(p.h === '烏' ? 'wu' : 'tbl')) return false;
       if(!k) return true;
       return [p.name, p.e, p.room, p.bus, 'no' + p.n, p.f, p.h].join(' ').toLowerCase().includes(k);
     });
@@ -781,18 +777,18 @@
   function rActView(rows){
     const list = (t, g) => `<div class="r-gcard"><h3>${t}</h3><div class="sub">${g.length} 人</div>
       <ul>${g.map(p => `<li>${esc(p.name)}<em>${esc(p.bus)}</em></li>`).join('')}</ul></div>`;
-    return `<div class="r-sect">梅花湖</div><div class="r-groups">
+    return `<div class="r-sect">梅花湖 · 三選一</div><div class="r-groups">
         ${list('搭船', rows.filter(p => p.m === '船'))}
         ${list('騎腳踏車', rows.filter(p => p.m === '車'))}
-        ${list('不參加', rows.filter(p => p.m === 'N'))}</div>
-      <div class="r-sect">羅東林業文化園區</div><div class="r-groups">
-        ${list('參加', rows.filter(p => p.l === 'Y'))}</div>
-      <div class="r-sect">海饕特殊安排</div><div class="r-groups">
+        ${list('都不要', rows.filter(p => p.m === 'N'))}</div>
+      <div class="r-sect">羅東林業文化園區 · 導覽，與梅花湖無關</div><div class="r-groups">
+        ${list('參加導覽', rows.filter(p => p.l === 'Y'))}</div>
+      <div class="r-sect">海饕 · 特殊安排</div><div class="r-groups">
         ${list(WU, rows.filter(p => p.h === '烏'))}</div>`;
   }
   function rActive(){
     return document.getElementById('r-q').value.trim() !== '' ||
-           RF.bus.size > 0 || RF.spot.size > 0 || RF.act.size > 0;
+           Object.keys(RF).some(k => RF[k].size > 0);
   }
   function rRender(){
     const rows = rFiltered();
@@ -833,9 +829,12 @@
       busOrder.map(b => ({v:b, t:b === '自駕' ? '自駕' : b + '車'})), 'bus');
     rChips(document.getElementById('r-fspot'), '上車',
       Object.keys(SPOT).map(k => ({v:k, t:SPOT[k].n.split(' · ')[1] || SPOT[k].n})), 'spot');
-    rChips(document.getElementById('r-fact'), '活動',
-      [{v:'boat',t:'梅花湖搭船'},{v:'bike',t:'梅花湖腳踏車'},{v:'none',t:'梅花湖不參加'},
-       {v:'luodong',t:'羅東林業'},{v:'wu',t:'烏石港自理'}], 'act');
+    rChips(document.getElementById('r-fmei'), '梅花湖',
+      [{v:'船',t:'搭船'},{v:'車',t:'騎腳踏車'},{v:'N',t:'不參加'}], 'mei');
+    rChips(document.getElementById('r-flu'), '羅東林業',
+      [{v:'Y',t:'參加導覽'},{v:'N',t:'不參加'}], 'lu');
+    rChips(document.getElementById('r-fhai'), '海饕',
+      [{v:'tbl',t:'桌席'},{v:'wu',t:'烏石港自理'}], 'hai');
 
     const tabsDef = [['list','名單'],['bus','車輛'],['room','房間'],['fu','福哥'],['hai','海饕'],['act','活動'],['edit','編輯']];
     const tb = document.getElementById('r-tabs');
