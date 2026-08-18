@@ -768,13 +768,15 @@
     return rGroups(rows, p => p.room, (a,b) => a.localeCompare(b),
       k => k, (k,g) => bedTxt(g[0].bed) + ' · ' + g.length + ' 人');
   }
-  function rMealView(rows){
-    const block = keyFn => rGroups(rows, keyFn,
+  function rMealView(rows, which){
+    const keyFn = which === 'hai' ? (p => p.h) : (p => p.f);
+    const head = which === 'hai'
+      ? '海饕四季主流宴 · 第二天午餐'
+      : '福哥石窯雞 · 第一天午餐';
+    return `<div class="r-sect">${head}</div>` + rGroups(rows, keyFn,
       (a,b) => (isNaN(a) ? 99 : +a) - (isNaN(b) ? 99 : +b),
       k => isNaN(k) ? WU : '第 ' + k + ' 桌',
       (k,g) => isNaN(k) ? g.length + ' 人 · 不食海鮮，自行前往' : g.length + ' 人');
-    return `<div class="r-sect">福哥石窯雞 · 午餐</div>${block(p => p.f)}
-            <div class="r-sect">海饕四季主流宴 · 午餐</div>${block(p => p.h)}`;
   }
   function rActView(rows){
     const list = (t, g) => `<div class="r-gcard"><h3>${t}</h3><div class="sub">${g.length} 人</div>
@@ -799,7 +801,7 @@
       ? `全團 ${D.length} 人 · 待篩選`
       : `符合條件 ${rows.length} 人／全團 ${D.length} 人`;
     if(idle){
-      const hint = '<div class="r-no">打姓名或房號，或按上面的車號、上車地點、活動，結果才會列出來。<br><span class="r-sub">要看整團分組，切到「車輛」「房間」「餐桌」分頁。</span></div>';
+      const hint = '<div class="r-no">打姓名或房號，或按上面的車號、上車地點、活動，結果才會列出來。<br><span class="r-sub">要看整團分組，切到「車輛」「房間」「福哥」「海饕」分頁。</span></div>';
       document.getElementById('r-view').innerHTML = rTab === 'edit' ? rEditBar() + hint : hint;
       return;
     }
@@ -808,7 +810,8 @@
       : rTab === 'list' ? rTable(rows)
       : rTab === 'bus'  ? rBusView(rows)
       : rTab === 'room' ? rRoomView(rows)
-      : rTab === 'meal' ? rMealView(rows)
+      : rTab === 'fu' ? rMealView(rows, 'fu')
+      : rTab === 'hai' ? rMealView(rows, 'hai')
       : rTab === 'edit' ? rEditView(rows)
       : rActView(rows);
   }
@@ -834,7 +837,7 @@
       [{v:'boat',t:'梅花湖搭船'},{v:'bike',t:'梅花湖腳踏車'},{v:'none',t:'梅花湖不參加'},
        {v:'luodong',t:'羅東林業'},{v:'wu',t:'烏石港自理'}], 'act');
 
-    const tabsDef = [['list','名單'],['bus','車輛'],['room','房間'],['meal','餐桌'],['act','活動'],['edit','編輯']];
+    const tabsDef = [['list','名單'],['bus','車輛'],['room','房間'],['fu','福哥'],['hai','海饕'],['act','活動'],['edit','編輯']];
     const tb = document.getElementById('r-tabs');
     tb.innerHTML = tabsDef.map(t => `<button class="r-tab" data-t="${t[0]}" aria-pressed="${t[0] === 'list'}">${t[1]}</button>`).join('');
     tb.querySelectorAll('.r-tab').forEach(b => b.addEventListener('click', () => {
