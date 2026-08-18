@@ -191,6 +191,18 @@
     margin-bottom:12px;
   }
   .stop p{font-size:14.5px;color:var(--charcoal);max-width:60ch;font-weight:300}
+  .stop .pickup{list-style:none;margin:14px 0 0;max-width:60ch;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stop .pickup li{display:flex;gap:14px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .stop .pickup li:last-child{border-bottom:none}
+  .stop .pickup .pt{font-family:var(--mono);font-size:12.5px;color:var(--teal);flex:0 0 62px;letter-spacing:.02em}
+  .stop .pickup .pn{font-size:14.5px;color:var(--charcoal);font-weight:300}
+  .stop .pickup .pn b{font-weight:500;color:var(--ink);margin-right:7px}
+  .stop p.pickup-note{font-size:13px;color:var(--slate);margin-top:10px}
+  @media(max-width:560px){
+    .stop .pickup li{flex-direction:column;gap:2px;padding:10px 2px}
+    .stop .pickup .pt{flex:none}
+  }
 
   .admin-note{
     display:none;margin-top:12px;
@@ -420,10 +432,18 @@
     <div class="track">
 
       <div class="stop">
-        <div class="time">06:30</div>
+        <div class="time">06:30<small>至 07:10</small></div>
         <span class="tag">出發</span>
-        <h3>淡水出發</h3>
-        <p>集合啟程，早餐請自理。</p>
+        <h3>集合啟程</h3>
+        <p>請依報名時登記的地點上車，早餐請自理。發車時間為車輛駛離時間，請提前抵達。</p>
+        <ul class="pickup">
+          <li><span class="pt">06:30 前</span><span class="pn"><b>地點一</b> 水碓停車場前廣場</span></li>
+          <li><span class="pt">06:40 前</span><span class="pn"><b>地點二</b> 淡水老街廣場</span></li>
+          <li><span class="pt">06:45 前</span><span class="pn"><b>地點三</b> 紅樹林捷運站公車停靠站</span></li>
+          <li><span class="pt">06:50 前</span><span class="pn"><b>地點四</b> 竹圍捷運站公車停靠站</span></li>
+          <li><span class="pt">07:10 前</span><span class="pn"><b>地點五</b> 車容坊五股加油站前廣場</span></li>
+        </ul>
+        <p class="pickup-note">自行開車或直接到玉兔工廠會合的同仁不在此列。</p>
       </div>
 
       <div class="stop">
